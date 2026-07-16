@@ -1,61 +1,55 @@
-from roboPlay import *
+from DQN import *
 
 
 def manual():
-    #Window dimensions for game, currently leaving locked in dimensions similar to a phone
+    # Window dimensions for game, currently leaving locked in dimensions similar to a phone
     WIDTH = classes.globalWidth
     HEIGHT = classes.globalHeight
 
-    #Pygame initialization
+    # Pygame initialization
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     clock = pygame.time.Clock()
     running = True
-    font=pygame.font.Font(None, 36)
+    font = pygame.font.Font(None, 36)
 
-    #initial values
-    dt=0
-    dia_pos=pygame.Vector2(WIDTH/2,4*HEIGHT/5)
-    dx=0
-    dy=0
+    # initial values
+    dt = 0
+    dia_pos = pygame.Vector2(WIDTH / 2, 4 * HEIGHT / 5)
+    dx = 0
+    dy = 0
     start = False
     alive = True
-    text=font.render("Press 'a' or 'd' to jump", True, (0,0,0),(255,255,255))
-    txt=text.get_rect()
-    txt.y=HEIGHT/2
-    txt.centerx=WIDTH/2
-    score=0
-    score_txt=font.render(str(score),True,(0,0,0),(255,255,255))
-    scoreboard=score_txt.get_rect()
-    scoreboard.x=10
-    scoreboard.y=10
+    text = font.render("Press 'a' or 'd' to jump", True, (0, 0, 0), (255, 255, 255))
+    txt = text.get_rect()
+    txt.y = HEIGHT / 2
+    txt.centerx = WIDTH / 2
+    score = 0
+    score_txt = font.render(str(score), True, (0, 0, 0), (255, 255, 255))
+    scoreboard = score_txt.get_rect()
+    scoreboard.x = 10
+    scoreboard.y = 10
 
-    #generate starting locations of first two levels
+    # generate starting locations of first two levels
     group_a = ObstacleGroup(HEIGHT / 5, WIDTH, cnst)
     group_b = ObstacleGroup(HEIGHT / 5 - cnst.goal_distance, WIDTH, cnst)
-    
+
     while running:
-        #looking for window X press to close loop and window
+        # looking for window X press to close loop and window
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-
 
         keys = pygame.key.get_pressed()
         if alive:
             # fill screen with white background to clear previous loop
             screen.fill("white")
-            #Render here
+            # Render here
             block_corners = [(dia_pos.x - cnst.dia_rad, dia_pos.y), (dia_pos.x, dia_pos.y - cnst.dia_rad),
                              (dia_pos.x + cnst.dia_rad, dia_pos.y), (dia_pos.x, dia_pos.y + cnst.dia_rad)]
 
-
-
-
-
             if start:
-                #if not the first press, look for new jump then add gravity
-
+                # if not the first press, look for new jump then add gravity
 
                 # if keys[pygame.K_a]:#TESTING WASD MOVEMENT
                 #     if dia_pos.x>cnst.dia_rad:
@@ -72,44 +66,40 @@ def manual():
                 #     dy=-1
                 #     dia_pos.y += cnst.y_spd * dt * dy
 
-
-
-
-                if keys[pygame.K_a]:#NORMAL JUMPS
-                    if dia_pos.x>cnst.dia_rad:
+                if keys[pygame.K_a]:  # NORMAL JUMPS
+                    if dia_pos.x > cnst.dia_rad:
                         dx = -1
                         dy = cnst.dy0
                 if keys[pygame.K_d]:
-                    if dia_pos.x<WIDTH-cnst.dia_rad:
+                    if dia_pos.x < WIDTH - cnst.dia_rad:
                         dx = 1
                         dy = cnst.dy0
-                dia_pos.x = max(cnst.dia_rad,min(dia_pos.x+cnst.x_spd * dt * dx,WIDTH-cnst.dia_rad))
-                dy+=cnst.grav
+                dia_pos.x = max(cnst.dia_rad, min(dia_pos.x + cnst.x_spd * dt * dx, WIDTH - cnst.dia_rad))
+                dy += cnst.grav
                 dia_pos.y += cnst.y_spd * dt * dy
 
-
-                #now check to see if dead
-                if dia_pos.y>HEIGHT-cnst.dia_rad:
+                # now check to see if dead
+                if dia_pos.y > HEIGHT - cnst.dia_rad:
                     alive = False
-                    text = font.render("Press space to reset", True, (0,0,0),(255,255,255))
+                    text = font.render("Press space to reset", True, (0, 0, 0), (255, 255, 255))
                     txt = text.get_rect()
                     txt.y = HEIGHT / 2
                     txt.centerx = WIDTH / 2
                 if group_a.collide(dia_pos, cnst.dia_rad) or group_b.collide(dia_pos, cnst.dia_rad):
                     alive = False
-                    text = font.render("Press space to reset", True, (0,0,0),(255,255,255))
+                    text = font.render("Press space to reset", True, (0, 0, 0), (255, 255, 255))
                     txt = text.get_rect()
                     txt.y = HEIGHT / 2
                     txt.centerx = WIDTH / 2
             else:
-                #if no press yet then wait for first press before moving to avoid gravity building
+                # if no press yet then wait for first press before moving to avoid gravity building
                 if keys[pygame.K_a]:
                     dx = -1
                     dy = cnst.dy0
                     dia_pos.x += cnst.x_spd * dt * dx
                     dy += cnst.grav
                     dia_pos.y += cnst.y_spd * dt * dy
-                    start=True
+                    start = True
                 if keys[pygame.K_d]:
                     dx = 1
                     dy = cnst.dy0
@@ -117,32 +107,32 @@ def manual():
                     dy += cnst.grav
                     dia_pos.y += cnst.y_spd * dt * dy
                     start = True
-            #check to see if we need to "move camera"
-            if dia_pos.y<HEIGHT/2:
-                #locks visual height of block at middle and makes everything else fall
-                fall=dia_pos.y-math.floor(HEIGHT/2)
-                dia_pos.y = math.floor(HEIGHT/2)
-                #if any line is falling below capped diamond height, then diamond has reached the line so score up
+            # check to see if we need to "move camera"
+            if dia_pos.y < HEIGHT / 2:
+                # locks visual height of block at middle and makes everything else fall
+                fall = dia_pos.y - math.floor(HEIGHT / 2)
+                dia_pos.y = math.floor(HEIGHT / 2)
+                # if any line is falling below capped diamond height, then diamond has reached the line so score up
                 if group_a.line0.y2 < HEIGHT / 2 <= group_a.line0.y2 - fall or group_b.line0.y2 < HEIGHT / 2 <= group_b.line0.y2 - fall:
-                    score+=1
-                    score_txt=font.render(str(score),True,(0,0,0),(255,255,255))
-                    scoreboard=score_txt.get_rect()
+                    score += 1
+                    score_txt = font.render(str(score), True, (0, 0, 0), (255, 255, 255))
+                    scoreboard = score_txt.get_rect()
                 group_a.fall(fall)
                 group_b.fall(fall)
-                #check to see if any group full off-screen and if so then move
+                # check to see if any group full off-screen and if so then move
                 if group_a.small1.y1 > HEIGHT:
                     group_a.reset(group_a.line1.y2 - 2 * cnst.goal_distance)
                 if group_b.small1.y1 > HEIGHT:
                     group_b.reset(group_b.line1.y2 - 2 * cnst.goal_distance)
 
-            #after moving done, draw
+            # after moving done, draw
             group_a.draw(screen)
             group_b.draw(screen)
 
             pygame.draw.polygon(screen, "black", block_corners)
-        else: #if dead allow for restart
+        else:  # if dead allow for restart
             if keys[pygame.K_SPACE]:
-                text = font.render("Press 'a' or 'd' to jump", True, (0,0,0),(255,255,255))
+                text = font.render("Press 'a' or 'd' to jump", True, (0, 0, 0), (255, 255, 255))
                 txt = text.get_rect()
                 txt.y = HEIGHT / 2
                 txt.centerx = WIDTH / 2
@@ -153,23 +143,25 @@ def manual():
                 start = False
                 alive = True
                 score = 0
-                score_txt = font.render(str(score), True, (0, 0, 0),(255,255,255))
+                score_txt = font.render(str(score), True, (0, 0, 0), (255, 255, 255))
                 scoreboard = score_txt.get_rect()
-                #reset starting blocks
+                # reset starting blocks
                 group_a.reset(HEIGHT / 5)
-                group_b.reset(HEIGHT/5-cnst.goal_distance)
+                group_b.reset(HEIGHT / 5 - cnst.goal_distance)
 
         if not start or not alive:
             screen.blit(text, txt)
-        screen.blit(score_txt,scoreboard)
-        #finish render and display
+        screen.blit(score_txt, scoreboard)
+        # finish render and display
         pygame.display.flip()
-        #limit to 60 FPS
-        #dt gives time in seconds since last frame
-        dt=clock.tick(60)/1000
+        # limit to 60 FPS
+        # dt gives time in seconds since last frame
+        dt = clock.tick(60) / 1000
 
     pygame.quit()
     return score
+
+
 
 # RL constant init
 EPSILON_DECAY = 0.9999
@@ -179,27 +171,33 @@ state = None
 direction_timer = None
 prev_move = direction_timer
 
-def play(runCount):
+
+
+def play(run_count, draw_interval, mid_avg_print):
     #negative runcount sets manual play
-    global epsilon, state
-    if runCount < 0:
+    global state
+    if run_count < 0:
         return manual()
-    #runCount of zero draws
+    if run_count == 0:
+        return 0
+    #values of or below 0 never activate
+    if draw_interval <= 0:
+        draw_interval = run_count+1
+    if mid_avg_print <=0:
+        mid_avg_print = run_count+1
     scores=[]
     drawBool = False
-    if runCount == 0:
-        drawBool = True
     WIDTH = classes.globalWidth
     HEIGHT = classes.globalHeight
-    screen=None
-    clock=None
-
+    run_num = 0
+    rec_total = 0
+    rec_max=0
 
     #pygame initialization for bug testing
     pygame.init()
-    if drawBool:
-        screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        clock = pygame.time.Clock()
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    screen.fill("white")
+    clock = pygame.time.Clock()
 
     #initial values
     dt=0
@@ -213,7 +211,6 @@ def play(runCount):
     #generate starting locations of first two levels
     group_a = ObstacleGroup(HEIGHT / 5, WIDTH, cnst)
     group_b = ObstacleGroup(HEIGHT / 5 - cnst.goal_distance, WIDTH, cnst)
-    blockList = group_a.all() + group_b.all()
 
     running = True
 
@@ -224,19 +221,19 @@ def play(runCount):
     hit_block=False
     #state and action init
     state = get_state(group_a, group_b ,dia_pos)
-    direction_timer = choose_action(group_a, group_b , dia_pos , epsilon)
+    direction_timer = choose_action(group_a, group_b , dia_pos)
     prev_move = direction_timer
 
     while running:#start game logic
         #if drawing need to quit with window X
-        if drawBool:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
 
         if alive:
             #drawing features for bug test
-
+            if run_num != 0 and run_num % draw_interval == 0:
+                drawBool = True
             if drawBool:
                 screen.fill("white")
 
@@ -245,36 +242,29 @@ def play(runCount):
                                  (dia_pos.x + cnst.dia_rad, dia_pos.y), (dia_pos.x, dia_pos.y + cnst.dia_rad)]
             if start:
                 #unsure if the start/wait logic needed for roboPlay, but left in for continuity
-                if direction_timer < 0: #negative timer jumps left
-                    direction_timer += 1
-                    if direction_timer >= -1:
-                        if dia_pos.x>cnst.dia_rad:
-                            dx = -1
-                            dy = cnst.dy0
-                        direction_timer = choose_action(group_a, group_b , dia_pos , epsilon)
-                        # RL Q update
-                        reward = get_reward(climbedY, hit_floor, hit_block, scoreUp)
-                        scoreUp = 0
-                        prev_state = state
-                        state = get_state(group_a, group_b ,dia_pos)
-                        update_q(prev_state, prev_move, reward, state)
-                        prev_move = direction_timer
-                        climbedY = 0  # reset so next action starts fresh
-                elif direction_timer > 0: #positive timer jumps right
-                    direction_timer -= 1
-                    if direction_timer <= 1:
-                        if dia_pos.x<WIDTH-cnst.dia_rad:
-                            dx = 1
-                            dy = cnst.dy0
-                        direction_timer = choose_action(group_a, group_b , dia_pos , epsilon)
-                        # RL Q update
-                        reward = get_reward(climbedY, hit_floor, hit_block, scoreUp)
-                        scoreUp = 0
-                        prev_state = state
-                        state = get_state(group_a, group_b ,dia_pos)
-                        update_q(prev_state, prev_move, reward, state)
-                        prev_move = direction_timer
-                        climbedY = 0  # reset so next action starts fresh
+
+                direction_timer -= 1
+                if direction_timer <= 1:
+                    direction_timer = choose_action(group_a, group_b , dia_pos)
+                    if direction_timer < 0 and dia_pos.x > cnst.dia_rad:
+                        dx = -1
+                        dy = cnst.dy0
+                    elif direction_timer > 0 and dia_pos.x < WIDTH - cnst.dia_rad:
+                        dx = 1
+                        dy = cnst.dy0
+                    # RL Q update
+                    reward = get_reward(climbedY, hit_floor, hit_block, scoreUp)
+                    scoreUp = 0
+                    prev_state = state
+                    state = get_state(group_a, group_b ,dia_pos)
+                    if prev_move in ACTIONS:
+                        buffer.push(prev_state, prev_move, reward, state, not alive)
+                        train_step()
+                        maybe_update_target()
+                    prev_move = direction_timer #record what move made for next state Q update
+                    climbedY = 0  # reset so next action starts fresh
+                    direction_timer = abs(direction_timer) #set timer positive for further loop reduction
+
                 #after checking for jump, move with physics
                 dia_pos.x = max(cnst.dia_rad, min(dia_pos.x + cnst.x_spd * dt * dx, WIDTH - cnst.dia_rad))
                 dy += cnst.grav
@@ -289,7 +279,10 @@ def play(runCount):
                     scoreUp=0
                     prev_state = state
                     state = get_state(group_a, group_b ,dia_pos)
-                    update_q(prev_state, prev_move, reward, state)
+                    if prev_move in ACTIONS:
+                        buffer.push(prev_state, prev_move, reward, state, not alive)
+                        train_step()
+                        maybe_update_target()
                     climbedY = 0  # reset so next action starts fresh
                 if group_a.collide(dia_pos, cnst.dia_rad) or group_b.collide(dia_pos, cnst.dia_rad):
                     hit_block = True
@@ -299,7 +292,10 @@ def play(runCount):
                     scoreUp=0
                     prev_state = state
                     state = get_state(group_a, group_b ,dia_pos)
-                    update_q(prev_state, prev_move, reward, state)
+                    if prev_move in ACTIONS:
+                        buffer.push(prev_state, prev_move, reward, state, not alive)
+                        train_step()
+                        maybe_update_target()
                     climbedY = 0  # reset so next action starts fresh
 
             else: #main physics logic for after first move
@@ -314,13 +310,16 @@ def play(runCount):
                             dia_pos.y += cnst.y_spd * dt * dy
                             climbedY -= cnst.y_spd *dt *dy
                             start = True
-                        direction_timer = choose_action(group_a, group_b , dia_pos , epsilon)
+                        direction_timer = choose_action(group_a, group_b , dia_pos)
                         # RL Q update
                         reward = get_reward(climbedY, hit_floor, hit_block, scoreUp)
                         scoreUp = 0
                         prev_state = state
                         state = get_state(group_a, group_b ,dia_pos)
-                        update_q(prev_state, prev_move, reward, state)
+                        if prev_move in ACTIONS:
+                            buffer.push(prev_state, prev_move, reward, state, not alive)
+                            train_step()
+                            maybe_update_target()
                         prev_move = direction_timer
                         climbedY = 0  # reset so next action starts fresh
                 elif direction_timer >= 0: #positive timer jumps right
@@ -334,13 +333,16 @@ def play(runCount):
                             dia_pos.y += cnst.y_spd * dt * dy
                             climbedY -= cnst.y_spd *dt *dy
                             start = True
-                        direction_timer = choose_action(group_a, group_b , dia_pos , epsilon)
+                        direction_timer = choose_action(group_a, group_b , dia_pos)
                         # RL Q update
                         reward = get_reward(climbedY, hit_floor, hit_block, scoreUp)
                         scoreUp = 0
                         prev_state = state
                         state = get_state(group_a, group_b ,dia_pos)
-                        update_q(prev_state, prev_move, reward, state)
+                        if prev_move in ACTIONS:
+                            buffer.push(prev_state, prev_move, reward, state, not alive)
+                            train_step()
+                            maybe_update_target()
                         prev_move=direction_timer
                         climbedY = 0  # reset so next action starts fresh
 
@@ -370,13 +372,18 @@ def play(runCount):
                 pygame.draw.polygon(screen, "black", diamond_corners)
 
 
-        else: #dead so reduce runCount and if zero then quit
-            if score>3:
-                print(f"Round {runCount} score: {score}")
+        else: #dead so raise run_num and if reached run_count then quit
+            drawBool = False
             scores.append(score)
-            epsilon = max(EPSILON_MIN, epsilon * EPSILON_DECAY)
-            runCount-=1
-            if(runCount <= 0):
+            rec_max = max(score,rec_max)
+            rec_total += score
+            cnst.epsilon = max(EPSILON_MIN, cnst.epsilon * EPSILON_DECAY)
+            run_num+=1
+            if run_num % mid_avg_print == 0:
+                print(f"Round {run_num}-\tSince last print - Avg: {rec_total / mid_avg_print:.4f}\tMax: {rec_max}")
+                rec_total = 0
+                rec_max = 0
+            if(run_num >= run_count):
                 running=False
             else: #reset
                 # reward var init
@@ -385,7 +392,7 @@ def play(runCount):
                 hit_block = False
                 # state and action init
                 state = get_state(group_a, group_b ,dia_pos)
-                direction_timer = choose_action(group_a, group_b , dia_pos , epsilon)
+                direction_timer = choose_action(group_a, group_b , dia_pos)
                 dt = 0
                 dia_pos = pygame.Vector2(WIDTH/2,4*HEIGHT/5)
                 dx = 0
@@ -398,37 +405,43 @@ def play(runCount):
                 group_b.reset(HEIGHT / 5 - cnst.goal_distance)
 
 
-        if (drawBool):
+        if drawBool:
             pygame.display.flip()
             # limit to 60 FPS
             # dt gives time in seconds since last frame
-            dt = clock.tick(60) / 1000
+            clock.tick(60)
+            dt = 1/60
         else:
             dt = 1/60
+            if run_num % 1000 == 0:
+                pygame.event.pump()
     pygame.quit()
-    if not drawBool:
-        print(f"Avg: {sum(scores)/len(scores):.4f}")
-        print(f"Max: {max(scores)}")
-    return score
+    print(f"After {run_count} rounds-\tAvg: {sum(scores)/len(scores):.4f}\tMax: {max(scores)}")
+    print(f"")
+    save_training()
+    return cnst.epsilon
 
-def run(total, shown_step, observe = 1):
+
+def run(total, shown_step, observe, mid_avg_print):
     #run the game {total} times with every {shown_step}th game drawn
     #negative total lets manual play
-    load_training()
-    if total < 0:
+    if total <= 0:
         manual()
         return
-    elif shown_step >total or shown_step <=0:
-        play(total)
+    load_training()
+    if shown_step >total or shown_step <=0:
+        play(total,0, mid_avg_print)
     else:
-        for x in range(math.floor(total/shown_step)):
-            if x % 2 == 1:
-                play(0)
-            else:
-                play(shown_step-1)
-    for i in range(observe):
-        play(0)
+        play(total, shown_step, mid_avg_print)
+    play(observe,1, 0)
     save_training()
 
-run(1000000,1000000, observe = 0)
-# manual()
+play_manually = String(input("Play manually? (y/n): "))
+if play_manually == "y":
+    manual()
+else:
+    tot = int(input("Total Rounds: "))
+    shown_step = int(input("Shown Round interval: "))
+    observe = int(input("Observed Rounds after Total finished: "))
+    mid_print = int(input("Mid Status Print interval: "))
+    run(tot,shown_step, observe, mid_print)

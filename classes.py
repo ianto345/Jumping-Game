@@ -14,6 +14,10 @@ class Constants:
     y_spd: int = 250
     goal_distance: int = 500
     dy0: float = -4.0
+    epsilon: float = 1.0
+
+    # def set_eps(self, eps):
+    #     self.eps = eps
 
 cnst = Constants()  # single shared instance
 
